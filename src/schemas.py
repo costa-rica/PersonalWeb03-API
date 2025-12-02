@@ -2,22 +2,54 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, field_validator
 
 
 # Auth Schemas
 class UserRegister(BaseModel):
     """Schema for user registration request."""
 
-    email: EmailStr
+    email: str
     password: str
+
+    @field_validator('email')
+    @classmethod
+    def email_not_empty(cls, v: str) -> str:
+        """Validate that email is not empty."""
+        if not v or not v.strip():
+            raise ValueError('Email cannot be empty')
+        return v
+
+    @field_validator('password')
+    @classmethod
+    def password_not_empty(cls, v: str) -> str:
+        """Validate that password is not empty."""
+        if not v or not v.strip():
+            raise ValueError('Password cannot be empty')
+        return v
 
 
 class UserLogin(BaseModel):
     """Schema for user login request."""
 
-    email: EmailStr
+    email: str
     password: str
+
+    @field_validator('email')
+    @classmethod
+    def email_not_empty(cls, v: str) -> str:
+        """Validate that email is not empty."""
+        if not v or not v.strip():
+            raise ValueError('Email cannot be empty')
+        return v
+
+    @field_validator('password')
+    @classmethod
+    def password_not_empty(cls, v: str) -> str:
+        """Validate that password is not empty."""
+        if not v or not v.strip():
+            raise ValueError('Password cannot be empty')
+        return v
 
 
 class Token(BaseModel):
