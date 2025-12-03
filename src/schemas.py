@@ -98,3 +98,25 @@ class BlogPostDetail(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Hero Section Schemas
+class TogglTableItem(BaseModel):
+    """Schema for a single toggl table item."""
+
+    project_name: str
+    total_hours: float
+
+
+class UpToLately(BaseModel):
+    """Schema for up_to_lately section."""
+
+    text: str
+    date: str
+
+
+class HeroSectionData(BaseModel):
+    """Schema for hero section data response."""
+
+    up_to_lately: UpToLately
+    toggl_table: list[TogglTableItem]
