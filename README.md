@@ -93,7 +93,7 @@ PersonalWeb03-API/
 │   ├── database.py       # Database configuration
 │   └── main.py           # FastAPI application
 ├── docs/
-│   └── REQUIREMENTS-API.md
+│   └── API_REFERENCE.md
 ├── requirements.txt
 ├── .env
 ├── .env.example
