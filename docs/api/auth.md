@@ -2,9 +2,11 @@
 
 ## POST /auth/register
 
-Register a new user account.
+Register a new user account and receive a JWT access token.
 
 **Authentication:** Not required
+
+**Authorization:** Email must be in the `EMAIL_ADMIN_LIST` environment variable
 
 **Sample Request:**
 
@@ -22,8 +24,15 @@ curl -X POST http://localhost:8000/auth/register \
 Success (201 Created):
 ```json
 {
-  "message": "User registered successfully",
-  "email": "user@example.com"
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzAxNDUwMDAwfQ.signature",
+  "token_type": "bearer"
+}
+```
+
+Error - Unauthorized email (403 Forbidden):
+```json
+{
+  "detail": "Registration restricted to authorized email addresses"
 }
 ```
 
@@ -48,9 +57,15 @@ Error - Validation error (422 Unprocessable Entity):
 ```
 
 **Behavior:**
+- Registration is restricted to emails listed in `EMAIL_ADMIN_LIST` (comma-separated)
+- Email matching is case-insensitive
+- If `EMAIL_ADMIN_LIST` is empty or not set, all registrations are blocked
+- Upon successful registration, user is automatically logged in and receives a JWT token
 - Email and password cannot be empty strings
 - Passwords are hashed using bcrypt before storage
 - Bcrypt has a 72-byte limit - longer passwords are truncated
+- JWT tokens never expire in this system
+- Use the token in subsequent requests: `Authorization: Bearer <token>`
 
 ---
 
