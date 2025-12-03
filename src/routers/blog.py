@@ -230,7 +230,7 @@ def list_posts(db: Session = Depends(get_db)):
     logger.info(f"Found {len(posts)} blog posts")
     return posts
 
-
+# GET /blog/{post_id}
 @router.get("/blog/{post_id}", response_model=BlogPostDetail)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     """
