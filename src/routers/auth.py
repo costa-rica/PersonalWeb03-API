@@ -1,5 +1,6 @@
 """Authentication router for user registration and login."""
 
+import os
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -28,9 +29,30 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
         dict: Success message
 
     Raises:
-        HTTPException: If email already exists
+        HTTPException: If email is not authorized or already exists
     """
     logger.info(f"Registration attempt for email: {user_data.email}")
+
+    # Check if email is in the authorized admin list
+    admin_list_str = os.getenv("EMAIL_ADMIN_LIST", "")
+    if not admin_list_str:
+        # If EMAIL_ADMIN_LIST is not set or empty, block all registrations
+        logger.warning(f"Registration blocked: EMAIL_ADMIN_LIST not configured - {user_data.email}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Registration restricted to authorized email addresses"
+        )
+
+    # Parse comma-separated email list and convert to lowercase
+    authorized_emails = [email.strip().lower() for email in admin_list_str.split(",")]
+
+    # Check if the user's email (case-insensitive) is in the authorized list
+    if user_data.email.lower() not in authorized_emails:
+        logger.warning(f"Registration blocked: Unauthorized email - {user_data.email}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Registration restricted to authorized email addresses"
+        )
 
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
