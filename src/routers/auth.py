@@ -16,17 +16,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=Token)
 def register(user_data: UserRegister, db: Session = Depends(get_db)):
     """
-    Register a new user.
+    Register a new user and return access token.
 
     Args:
         user_data: User registration data (email, password)
         db: Database session
 
     Returns:
-        dict: Success message
+        Token: JWT access token for the newly registered user
 
     Raises:
         HTTPException: If email is not authorized or already exists
@@ -74,8 +74,11 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    logger.info(f"User registered successfully: {user_data.email}")
-    return {"message": "User registered successfully", "email": user_data.email}
+    # Create access token for the newly registered user
+    access_token = create_access_token(data={"sub": new_user.email})
+
+    logger.info(f"User registered successfully and logged in: {user_data.email}")
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/login", response_model=Token)
