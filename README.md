@@ -21,7 +21,7 @@ PersonalWeb03 is a FastAPI-based backend that manages user authentication and a 
 
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate
    ```
 
 3. Install dependencies:
@@ -37,7 +37,7 @@ PersonalWeb03 is a FastAPI-based backend that manages user authentication and a 
    # Edit .env with your configuration
    ```
 
-5. Run the application:
+5. **Run the application**:
    ```bash
    uvicorn src.main:app --reload
    ```
@@ -49,7 +49,6 @@ The API will be available at `http://localhost:8000`
 Once running, visit:
 
 - Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
 
 ## API Endpoints
 
