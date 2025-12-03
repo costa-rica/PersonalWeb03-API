@@ -1,4 +1,4 @@
-"""Database models for MarkdownBlog01API."""
+"""Database models for PersonalWeb03API."""
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime

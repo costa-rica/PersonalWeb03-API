@@ -1,8 +1,8 @@
-# MarkdownBlog01
+# PersonalWeb03
 
 ## Overview
 
-MarkdownBlog01 is a FastAPI-based backend that manages user authentication and a markdown-driven blog system. Blog content is stored on the server outside the repository, organized by post ID directories.
+PersonalWeb03 is a FastAPI-based backend that manages user authentication and a markdown-driven blog system. Blog content is stored on the server outside the repository, organized by post ID directories.
 
 ## Features
 
@@ -18,17 +18,20 @@ MarkdownBlog01 is a FastAPI-based backend that manages user authentication and a
 
 1. Clone the repository
 2. Create a virtual environment:
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. Configure environment variables:
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
@@ -44,27 +47,32 @@ The API will be available at `http://localhost:8000`
 ## API Documentation
 
 Once running, visit:
+
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
 ## API Endpoints
 
 ### Authentication
+
 - `POST /auth/register` - Register a new user
 - `POST /auth/login` - Login and receive JWT token
 
 ### Blog Posts
+
 - `POST /create-post` - Create a new blog post (requires JWT)
 - `PATCH /update-post/{post_id}` - Update blog post metadata (requires JWT)
 - `GET /blog` - List all blog posts
 - `GET /blog/{post_id}` - Get blog post details with markdown content
 
 ### Static Files
+
 - `/posts/{directory_name}/` - Access static blog post files
 
 ## Environment Variables
 
 See `.env.example` for required configuration:
+
 - `NAME_APP` - Application name
 - `PATH_BLOG` - Absolute path where blog files are stored
 - `NAME_DB` - Database filename
@@ -74,7 +82,7 @@ See `.env.example` for required configuration:
 ## Project Structure
 
 ```
-MarkdownBlog01-API/
+PersonalWeb03-API/
 ├── src/
 │   ├── routers/
 │   │   ├── auth.py       # Authentication endpoints

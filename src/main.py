@@ -1,4 +1,4 @@
-"""Main FastAPI application for MarkdownBlog01API."""
+"""Main FastAPI application for PersonalWeb03API."""
 
 import os
 import logging
@@ -20,7 +20,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('markdownblog01_api.log')
+        logging.FileHandler('personalweb03_api.log')
     ]
 )
 
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 # Get configuration from environment
 PATH_BLOG = os.getenv("PATH_BLOG")
-NAME_APP = os.getenv("NAME_APP", "MarkdownBlog01API")
+NAME_APP = os.getenv("NAME_APP", "PersonalWeb03API")
 
 if not PATH_BLOG:
     raise ValueError("PATH_BLOG must be set in .env file")
@@ -66,7 +66,7 @@ logger.info("Mounted static files at /posts")
 @app.on_event("startup")
 def startup_event():
     """Initialize database on application startup."""
-    logger.info("Starting MarkdownBlog01API")
+    logger.info("Starting PersonalWeb03API")
     init_db()
     logger.info("Database initialized successfully")
 

@@ -1,4 +1,4 @@
-# API Reference - MarkdownBlog01 API
+# API Reference - PersonalWeb03 API
 
 Version: 1.0.0
 
@@ -18,7 +18,7 @@ Base URL: `http://localhost:8000`
 
 ## Overview
 
-The MarkdownBlog01 API is a FastAPI-based backend for managing user authentication and a markdown-driven blog system. Blog content is stored as markdown files with associated assets in a structured directory system.
+The PersonalWeb03 API is a FastAPI-based backend for managing user authentication and a markdown-driven blog system. Blog content is stored as markdown files with associated assets in a structured directory system.
 
 ### Key Features
 
@@ -46,6 +46,7 @@ Authorization: Bearer <your_token_here>
 ### Protected Endpoints
 
 The following endpoints require authentication:
+
 - `POST /create-post`
 - `PATCH /update-post/{post_id}`
 
@@ -62,9 +63,10 @@ GET /
 Returns basic API information.
 
 **Response** (200 OK):
+
 ```json
 {
-  "name": "MarkdownBlog01API",
+  "name": "PersonalWeb03API",
   "version": "1.0.0",
   "status": "running"
 }
@@ -79,6 +81,7 @@ GET /health
 Checks if the API is healthy and running.
 
 **Response** (200 OK):
+
 ```json
 {
   "status": "healthy"
@@ -98,6 +101,7 @@ POST /auth/register
 Register a new user account.
 
 **Request Body**:
+
 ```json
 {
   "email": "user@example.com",
@@ -106,6 +110,7 @@ Register a new user account.
 ```
 
 **Response** (201 Created):
+
 ```json
 {
   "message": "User registered successfully",
@@ -114,10 +119,12 @@ Register a new user account.
 ```
 
 **Error Responses**:
+
 - `400 Bad Request` - Email already registered
 - `422 Unprocessable Entity` - Invalid email format or missing fields
 
 **Example**:
+
 ```bash
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
@@ -136,6 +143,7 @@ POST /auth/login
 Authenticate and receive a JWT token.
 
 **Request Body**:
+
 ```json
 {
   "email": "user@example.com",
@@ -144,6 +152,7 @@ Authenticate and receive a JWT token.
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -152,10 +161,12 @@ Authenticate and receive a JWT token.
 ```
 
 **Error Responses**:
+
 - `401 Unauthorized` - Invalid credentials
 - `422 Unprocessable Entity` - Invalid email format or missing fields
 
 **Example**:
+
 ```bash
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
@@ -180,17 +191,20 @@ Create a new blog post by uploading a ZIP file containing `post.md` and any asso
 **Authentication**: Required
 
 **Request**:
+
 - Content-Type: `multipart/form-data`
 - Form fields:
   - `title` (string, required): Blog post title
   - `zip_file` (file, required): ZIP archive containing post.md and assets
 
 **ZIP File Requirements**:
+
 - Must contain a `post.md` file in the root
 - Can contain additional assets (images, etc.)
 - Must be a valid ZIP archive
 
 **Response** (201 Created):
+
 ```json
 {
   "id": 1,
@@ -201,11 +215,13 @@ Create a new blog post by uploading a ZIP file containing `post.md` and any asso
 ```
 
 **Error Responses**:
+
 - `400 Bad Request` - Invalid ZIP file or missing post.md
 - `401 Unauthorized` - Missing or invalid authentication token
 - `422 Unprocessable Entity` - Missing required fields
 
 **Example**:
+
 ```bash
 curl -X POST http://localhost:8000/create-post \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -214,6 +230,7 @@ curl -X POST http://localhost:8000/create-post \
 ```
 
 **Notes**:
+
 - Post directories are created with zero-padded IDs (0001, 0002, etc.)
 - The directory name is automatically generated based on the post ID
 - If the ZIP is invalid or post.md is missing, the post record and directory are cleaned up
@@ -229,9 +246,11 @@ Update blog post metadata (title, description, or post_item_image).
 **Authentication**: Required
 
 **Path Parameters**:
+
 - `post_id` (integer): Blog post ID
 
 **Request Body** (all fields optional):
+
 ```json
 {
   "title": "Updated Blog Post Title",
@@ -241,6 +260,7 @@ Update blog post metadata (title, description, or post_item_image).
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "id": 1,
@@ -252,11 +272,13 @@ Update blog post metadata (title, description, or post_item_image).
 ```
 
 **Error Responses**:
+
 - `404 Not Found` - Blog post not found
 - `401 Unauthorized` - Missing or invalid authentication token
 - `422 Unprocessable Entity` - Invalid request body
 
 **Example**:
+
 ```bash
 curl -X PATCH http://localhost:8000/update-post/1 \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -268,6 +290,7 @@ curl -X PATCH http://localhost:8000/update-post/1 \
 ```
 
 **Notes**:
+
 - Only provided fields will be updated
 - The `post_item_image` should reference an image file included in the original ZIP upload
 
@@ -282,6 +305,7 @@ Retrieve a list of all blog posts (ID and title only).
 **Authentication**: Not required
 
 **Response** (200 OK):
+
 ```json
 [
   {
@@ -296,6 +320,7 @@ Retrieve a list of all blog posts (ID and title only).
 ```
 
 **Example**:
+
 ```bash
 curl -X GET http://localhost:8000/blog
 ```
@@ -311,9 +336,11 @@ Get detailed information about a specific blog post, including the full markdown
 **Authentication**: Not required
 
 **Path Parameters**:
+
 - `post_id` (integer): Blog post ID
 
 **Response** (200 OK):
+
 ```json
 {
   "id": 1,
@@ -328,10 +355,12 @@ Get detailed information about a specific blog post, including the full markdown
 ```
 
 **Error Responses**:
+
 - `404 Not Found` - Blog post not found or post.md file missing
 - `500 Internal Server Error` - Error reading markdown file
 
 **Example**:
+
 ```bash
 curl -X GET http://localhost:8000/blog/1
 ```
@@ -351,16 +380,19 @@ Serve static files from blog post directories (images, stylesheets, etc.).
 **Authentication**: Not required
 
 **Path Parameters**:
+
 - `directory_name` (string): The post directory name (e.g., "0001")
 - `file_path` (string): Relative path to the file within the post directory
 
 **Example**:
+
 ```
 http://localhost:8000/posts/0001/images/photo.jpg
 http://localhost:8000/posts/0001/styles.css
 ```
 
 **Notes**:
+
 - Files are served directly from the filesystem
 - This endpoint is mounted as a static file server
 - All files within the post directory are accessible
@@ -381,6 +413,7 @@ http://localhost:8000/posts/0001/styles.css
 ```
 
 **Fields**:
+
 - `id` (integer): Unique user identifier
 - `email` (string): User email address (unique)
 - `created_at` (datetime): Account creation timestamp
@@ -402,6 +435,7 @@ http://localhost:8000/posts/0001/styles.css
 ```
 
 **Fields**:
+
 - `id` (integer): Unique post identifier
 - `title` (string): Blog post title
 - `description` (string, nullable): Brief description of the post
@@ -420,10 +454,12 @@ http://localhost:8000/posts/0001/styles.css
 ```
 
 **Fields**:
+
 - `access_token` (string): JWT token for authentication
 - `token_type` (string): Always "bearer"
 
 **Token Payload**:
+
 ```json
 {
   "sub": "user@example.com"
@@ -459,6 +495,7 @@ The API uses standard HTTP status codes and returns error details in JSON format
 ### Example Error Responses
 
 **400 Bad Request**:
+
 ```json
 {
   "detail": "Email already registered"
@@ -466,6 +503,7 @@ The API uses standard HTTP status codes and returns error details in JSON format
 ```
 
 **401 Unauthorized**:
+
 ```json
 {
   "detail": "Invalid credentials"
@@ -473,6 +511,7 @@ The API uses standard HTTP status codes and returns error details in JSON format
 ```
 
 **404 Not Found**:
+
 ```json
 {
   "detail": "Blog post not found"
@@ -480,6 +519,7 @@ The API uses standard HTTP status codes and returns error details in JSON format
 ```
 
 **422 Unprocessable Entity**:
+
 ```json
 {
   "detail": [
@@ -510,7 +550,7 @@ These interfaces allow you to explore and test API endpoints directly from your 
 The following environment variables are required:
 
 ```env
-NAME_APP=MarkdownBlog01API
+NAME_APP=PersonalWeb03API
 PATH_BLOG=/absolute/path/to/blog/storage
 NAME_DB=markdownblog.db
 PATH_DATABASE=/absolute/path/to/database
@@ -553,6 +593,7 @@ The version is included in the root endpoint response and API documentation.
 ## Support
 
 For issues and questions:
+
 - Check the main README.md for setup instructions
 - Review the interactive documentation at `/docs`
-- Examine application logs: `markdownblog01_api.log`
+- Examine application logs: `personalweb03_api.log`
