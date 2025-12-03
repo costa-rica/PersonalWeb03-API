@@ -23,7 +23,7 @@ PATH_PROJECT_RESOURCES = os.getenv("PATH_PROJECT_RESOURCES")
 if not PATH_PROJECT_RESOURCES:
     raise ValueError("PATH_PROJECT_RESOURCES must be set in .env file")
 
-
+# GET /hero-section/data
 @router.get("/data", response_model=HeroSectionData)
 def get_hero_section_data():
     """
