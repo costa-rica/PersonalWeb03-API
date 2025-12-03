@@ -3,6 +3,7 @@
 import os
 import logging
 import zipfile
+import shutil
 from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
@@ -101,17 +102,49 @@ def create_post(
             detail="Invalid ZIP file"
         )
 
-    # Verify post.md exists
+    # Clean up macOS metadata folder if it exists
+    macosx_dir = post_dir / "__MACOSX"
+    if macosx_dir.exists():
+        shutil.rmtree(macosx_dir)
+        logger.info(f"Removed __MACOSX metadata folder")
+
+    # Find post.md (might be in a subdirectory)
     post_md_path = post_dir / "post.md"
     if not post_md_path.exists():
-        logger.error(f"post.md not found in ZIP for post {new_post.id}")
-        # Clean up: delete post record and directory
-        db.delete(new_post)
-        db.commit()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="ZIP file must contain post.md"
-        )
+        # Search for post.md in subdirectories
+        post_md_files = list(post_dir.rglob("post.md"))
+        if not post_md_files:
+            logger.error(f"post.md not found in ZIP for post {new_post.id}")
+            # Clean up: delete post record and directory
+            db.delete(new_post)
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="ZIP file must contain post.md"
+            )
+
+        # Found post.md in a subdirectory - move all contents to root
+        post_md_path = post_md_files[0]
+        source_dir = post_md_path.parent
+        logger.info(f"Found post.md in subdirectory: {source_dir}")
+
+        # Move all files from subdirectory to post_dir root
+        for item in source_dir.iterdir():
+            dest = post_dir / item.name
+            if dest.exists():
+                # Skip if destination already exists (shouldn't happen normally)
+                logger.warning(f"Skipping {item.name}, already exists in destination")
+                continue
+            shutil.move(str(item), str(dest))
+            logger.debug(f"Moved {item.name} to post directory root")
+
+        # Remove the now-empty subdirectory
+        if source_dir.exists() and source_dir != post_dir:
+            shutil.rmtree(source_dir)
+            logger.info(f"Removed empty subdirectory: {source_dir.name}")
+
+        # Update post_md_path to the new location
+        post_md_path = post_dir / "post.md"
 
     logger.info(f"Blog post created successfully: {new_post.id}")
     return {
