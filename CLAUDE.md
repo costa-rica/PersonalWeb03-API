@@ -55,7 +55,9 @@ src/
 ├── auth.py              # JWT utilities, password hashing, get_current_user dependency
 └── routers/
     ├── auth.py          # /auth/register, /auth/login endpoints
-    └── blog.py          # Blog CRUD endpoints
+    ├── blog.py          # Blog CRUD endpoints
+    ├── hero_section.py  # /hero-section endpoint for homepage data
+    └── downloads.py     # /downloads/{filename} endpoint for downloadable files
 ```
 
 ### Database Models
@@ -108,14 +110,34 @@ Use `get_current_user` dependency for authentication.
 - Generated from post ID with zero-padding: `f"{post.id:04d}"`
 - Examples: 0001, 0002, 0143
 
+### Downloads System
+
+**File Storage Architecture**
+- Downloadable files stored in `PATH_PROJECT_RESOURCES/downloadable/`
+- Files served via GET endpoint: `/downloads/{filename}`
+- No authentication required (public downloads)
+
+**Security Features** (src/routers/downloads.py)
+- Directory traversal prevention: blocks `..`, `/`, `\` in filenames
+- Path validation: ensures resolved path stays within downloadable directory
+- File existence check: returns 404 if file not found
+- File type check: only serves actual files (not directories)
+
+**Behavior:**
+- Returns files with `application/octet-stream` MIME type
+- Original filename preserved in response
+- Comprehensive logging of download requests and security violations
+
 ### Environment Variables
 
 Required in `.env`:
 - `NAME_APP` - Application name (default: PersonalWeb03API)
 - `PATH_BLOG` - Absolute path to blog storage directory (must contain posts/ subdirectory)
+- `PATH_PROJECT_RESOURCES` - Absolute path to project resources directory (must contain downloadable/ and hero-section/ subdirectories)
 - `NAME_DB` - SQLite database filename
 - `PATH_DATABASE` - Absolute path to database directory
 - `JWT_SECRET_KEY` - Secret key for JWT signing (use long random string)
+- `EMAIL_ADMIN_LIST` - Comma-separated list of authorized email addresses for registration (e.g., "admin@example.com,user@example.com")
 
 ### Database Initialization
 
@@ -142,7 +164,9 @@ Currently configured for development with permissive settings (allow_origins=["*
 
 - **JWT Tokens**: Never expire by design. Only issued_at (iat) claim is added.
 - **Password Security**: Bcrypt has 72-byte limit - passwords are truncated in both hash_password() and verify_password()
+- **Registration Restriction**: Only emails in EMAIL_ADMIN_LIST can register. Matching is case-insensitive. Returns JWT token upon successful registration.
 - **Blog Post Deletion**: Not implemented - only creation and metadata updates
-- **Static File Serving**: Mounted at `/posts` path, serves directly from filesystem
+- **Static File Serving**: Mounted at `/posts` path, serves directly from filesystem for blog content
+- **Downloads**: Separate endpoint with security checks for downloadable files (resume, PDFs, etc.)
 - **SQLite**: Uses check_same_thread=False for FastAPI compatibility
 - **ZIP Handling**: Automatically flattens nested directory structures if post.md is not in root

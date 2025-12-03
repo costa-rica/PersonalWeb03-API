@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from src.database import init_db
-from src.routers import auth, blog, hero_section
+from src.routers import auth, blog, hero_section, downloads
 
 # Load environment variables
 load_dotenv()
@@ -28,10 +28,14 @@ logger = logging.getLogger(__name__)
 
 # Get configuration from environment
 PATH_BLOG = os.getenv("PATH_BLOG")
+PATH_PROJECT_RESOURCES = os.getenv("PATH_PROJECT_RESOURCES")
 NAME_APP = os.getenv("NAME_APP", "PersonalWeb03API")
 
 if not PATH_BLOG:
     raise ValueError("PATH_BLOG must be set in .env file")
+
+if not PATH_PROJECT_RESOURCES:
+    raise ValueError("PATH_PROJECT_RESOURCES must be set in .env file")
 
 # Create FastAPI application
 app = FastAPI(
@@ -53,11 +57,17 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(blog.router)
 app.include_router(hero_section.router)
+app.include_router(downloads.router)
 
 # Ensure posts directory exists
 posts_path = Path(PATH_BLOG) / "posts"
 posts_path.mkdir(parents=True, exist_ok=True)
 logger.info(f"Posts directory: {posts_path}")
+
+# Ensure downloadable directory exists
+downloadable_path = Path(PATH_PROJECT_RESOURCES) / "downloadable"
+downloadable_path.mkdir(parents=True, exist_ok=True)
+logger.info(f"Downloadable directory: {downloadable_path}")
 
 # Mount static files for serving blog posts
 app.mount("/posts", StaticFiles(directory=str(posts_path)), name="posts")
