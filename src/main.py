@@ -65,6 +65,11 @@ posts_path = Path(PATH_BLOG) / "posts"
 posts_path.mkdir(parents=True, exist_ok=True)
 logger.info(f"Posts directory: {posts_path}")
 
+# Ensure icons directory exists
+icons_path = Path(PATH_BLOG) / "icons"
+icons_path.mkdir(parents=True, exist_ok=True)
+logger.info(f"Icons directory: {icons_path}")
+
 # Ensure downloadable directory exists
 downloadable_path = Path(PATH_PROJECT_RESOURCES) / "downloadable"
 downloadable_path.mkdir(parents=True, exist_ok=True)
@@ -73,6 +78,10 @@ logger.info(f"Downloadable directory: {downloadable_path}")
 # Mount static files for serving blog posts
 app.mount("/posts", StaticFiles(directory=str(posts_path)), name="posts")
 logger.info("Mounted static files at /posts")
+
+# Mount static files for serving blog icons
+app.mount("/blog/icons", StaticFiles(directory=str(icons_path)), name="blog-icons")
+logger.info("Mounted static files at /blog/icons")
 
 
 @app.on_event("startup")
