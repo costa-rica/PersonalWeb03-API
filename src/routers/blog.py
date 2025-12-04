@@ -289,3 +289,70 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         updated_at=post.updated_at,
         markdown_content=markdown_content
     )
+
+
+@router.delete("/blog/{post_id}")
+def delete_post(
+    post_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a blog post and its associated files.
+
+    Args:
+        post_id: Blog post ID
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        dict: Confirmation message with deleted post ID
+
+    Raises:
+        HTTPException: If post not found
+    """
+    logger.info(f"Deleting blog post {post_id}")
+
+    # Find post
+    post = db.query(BlogPost).filter(BlogPost.id == post_id).first()
+    if not post:
+        logger.warning(f"Blog post not found: {post_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Blog post not found"
+        )
+
+    # Store directory name before deleting from database
+    directory_name = post.directory_name
+
+    # Try to delete filesystem directory
+    posts_dir = Path(PATH_BLOG) / "posts"
+    post_dir = posts_dir / directory_name
+
+    filesystem_deleted = False
+    if post_dir.exists():
+        try:
+            shutil.rmtree(post_dir)
+            logger.info(f"Deleted directory: {post_dir}")
+            filesystem_deleted = True
+        except Exception as e:
+            logger.error(f"Failed to delete directory {post_dir}: {e}")
+            # Continue anyway - we'll still delete the database record
+    else:
+        logger.warning(f"Directory not found, skipping filesystem deletion: {post_dir}")
+
+    # Delete database record
+    db.delete(post)
+    db.commit()
+    logger.info(f"Deleted blog post {post_id} from database")
+
+    # Log the final status
+    if filesystem_deleted:
+        logger.info(f"Blog post {post_id} fully deleted (database and filesystem)")
+    else:
+        logger.warning(f"Blog post {post_id} deleted from database, but filesystem deletion incomplete")
+
+    return {
+        "message": "Blog post deleted successfully",
+        "id": post_id
+    }

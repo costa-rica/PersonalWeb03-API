@@ -86,6 +86,7 @@ src/
 **Protected Endpoints**
 - POST /create-post
 - PATCH /update-post/{post_id}
+- DELETE /blog/{post_id}
 
 Use `get_current_user` dependency for authentication.
 
@@ -165,7 +166,7 @@ Currently configured for development with permissive settings (allow_origins=["*
 - **JWT Tokens**: Never expire by design. Only issued_at (iat) claim is added.
 - **Password Security**: Bcrypt has 72-byte limit - passwords are truncated in both hash_password() and verify_password()
 - **Registration Restriction**: Only emails in EMAIL_ADMIN_LIST can register. Matching is case-insensitive. Returns JWT token upon successful registration.
-- **Blog Post Deletion**: Not implemented - only creation and metadata updates
+- **Blog Post Deletion**: Deletes both database record and filesystem directory. Completes successfully even if filesystem deletion fails (logs warning).
 - **Static File Serving**: Mounted at `/posts` path, serves directly from filesystem for blog content
 - **Downloads**: Separate endpoint with security checks for downloadable files (resume, PDFs, etc.)
 - **SQLite**: Uses check_same_thread=False for FastAPI compatibility

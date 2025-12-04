@@ -198,6 +198,55 @@ Error - Missing markdown file (404 Not Found):
 
 ---
 
+## DELETE /blog/{post_id}
+
+Delete a blog post and all its associated files.
+
+**Authentication:** Required (JWT token)
+
+**URL Parameters:**
+- `post_id` (integer) - Blog post ID
+
+**Sample Request:**
+
+```bash
+curl -X DELETE http://localhost:8000/blog/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+**Response Examples:**
+
+Success (200 OK):
+```json
+{
+  "message": "Blog post deleted successfully",
+  "id": 1
+}
+```
+
+Error - Not found (404 Not Found):
+```json
+{
+  "detail": "Blog post not found"
+}
+```
+
+Error - Unauthorized (401 Unauthorized):
+```json
+{
+  "detail": "Could not validate credentials"
+}
+```
+
+**Behavior:**
+- Deletes blog post record from database
+- Removes the entire post directory and all its files from filesystem
+- If directory doesn't exist but database record exists, still deletes the database record (cleanup)
+- If filesystem deletion fails but database deletion succeeds, operation completes successfully (logs warning)
+- Cannot be undone - deleted posts and files are permanently removed
+
+---
+
 ## Accessing Blog Post Assets (Images, CSS, etc.)
 
 Blog post assets (images, stylesheets, etc.) are served as static files directly from the filesystem.
