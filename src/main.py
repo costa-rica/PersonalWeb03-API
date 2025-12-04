@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from src.database import init_db
-from src.routers import auth, blog, hero_section, downloads
+from src.routers import auth, blog, hero_section, downloads, admin
 
 # Load environment variables
 load_dotenv()
@@ -58,6 +58,7 @@ app.include_router(auth.router)
 app.include_router(blog.router)
 app.include_router(hero_section.router)
 app.include_router(downloads.router)
+app.include_router(admin.router)
 
 # Ensure posts directory exists
 posts_path = Path(PATH_BLOG) / "posts"

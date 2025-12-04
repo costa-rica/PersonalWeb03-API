@@ -57,7 +57,8 @@ src/
     ├── auth.py          # /auth/register, /auth/login endpoints
     ├── blog.py          # Blog CRUD endpoints
     ├── hero_section.py  # /hero-section endpoint for homepage data
-    └── downloads.py     # /downloads/{filename} endpoint for downloadable files
+    ├── downloads.py     # /downloads/{filename} endpoint for downloadable files
+    └── admin.py         # /admin/database/backup, /admin/database/restore endpoints
 ```
 
 ### Database Models
@@ -87,6 +88,8 @@ src/
 - POST /create-post
 - PATCH /update-post/{post_id}
 - DELETE /blog/{post_id}
+- POST /admin/database/backup
+- POST /admin/database/restore
 
 Use `get_current_user` dependency for authentication.
 
@@ -128,6 +131,36 @@ Use `get_current_user` dependency for authentication.
 - Returns files with `application/octet-stream` MIME type
 - Original filename preserved in response
 - Comprehensive logging of download requests and security violations
+
+### Admin System
+
+**Database Backup & Restore**
+- Endpoints: `/admin/database/backup`, `/admin/database/restore`
+- Both endpoints require JWT authentication
+- Used for database backup, disaster recovery, and data migration
+
+**Backup Operation** (src/routers/admin.py)
+- Generates ZIP file containing CSV exports of all tables (User, BlogPost)
+- Returns ZIP directly as download (not saved to server)
+- Filename format: `db_backup_personalweb03_YYYYMMDD_HHMMSS.zip`
+- Includes all table fields and timestamps
+
+**Restore Operation** (src/routers/admin.py)
+- Accepts ZIP file containing CSV backups
+- **Appends** data to existing tables (does not replace)
+- ID preservation: Uses IDs from CSV files
+- Conflict handling:
+  - Skips record if ID already exists
+  - For User: skips if email already exists
+  - For BlogPost: skips if directory_name already exists
+- Returns detailed summary of imported/skipped records
+- Comprehensive logging of all operations and conflicts
+
+**Behavior:**
+- Backup creates in-memory ZIP for immediate download
+- Restore commits each table separately
+- Rollback on errors during restore
+- All operations logged with detailed conflict information
 
 ### Environment Variables
 
