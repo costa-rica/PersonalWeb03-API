@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from src.database import init_db
+from src.database import init_db, seed_admin_user
 from src.routers import auth, blog, hero_section, downloads, admin
 
 # Load environment variables
@@ -77,10 +77,12 @@ logger.info("Mounted static files at /posts")
 
 @app.on_event("startup")
 def startup_event():
-    """Initialize database on application startup."""
+    """Initialize database and seed admin user on application startup."""
     logger.info("Starting PersonalWeb03API")
     init_db()
     logger.info("Database initialized successfully")
+    seed_admin_user()
+    logger.info("Admin user seed completed")
 
 
 @app.get("/")
