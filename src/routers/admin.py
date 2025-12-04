@@ -63,7 +63,7 @@ def backup_database(
                     user.updated_at.isoformat() if user.updated_at else ''
                 ])
 
-            zip_file.writestr('user.csv', user_csv.getvalue())
+            zip_file.writestr('db_backup/user.csv', user_csv.getvalue())
             logger.debug("User table backed up successfully")
 
             # Backup BlogPost table
@@ -89,7 +89,7 @@ def backup_database(
                     post.updated_at.isoformat() if post.updated_at else ''
                 ])
 
-            zip_file.writestr('blogpost.csv', post_csv.getvalue())
+            zip_file.writestr('db_backup/blogpost.csv', post_csv.getvalue())
             logger.debug("BlogPost table backed up successfully")
 
         # Prepare ZIP for download
@@ -162,10 +162,42 @@ def restore_database(
             zip_contents = zip_ref.namelist()
             logger.info(f"ZIP contents: {zip_contents}")
 
-            # Restore User table if exists
-            if 'user.csv' in zip_contents:
-                logger.info("Restoring User table...")
-                user_csv_data = zip_ref.read('user.csv').decode('utf-8')
+            # Filter out __MACOSX and find CSV files in db_backup* folders
+            def find_csv_file(csv_name):
+                """Find CSV file in db_backup* or database_backup* folder, ignoring __MACOSX."""
+                logger.debug(f"Looking for: {csv_name}")
+                candidates = []
+
+                for path in zip_contents:
+                    # Skip __MACOSX folders
+                    if '__MACOSX' in path:
+                        logger.debug(f"Skipping __MACOSX: {path}")
+                        continue
+
+                    # Look for csv files in folders starting with db_backup or database_backup
+                    if path.endswith(f'/{csv_name}'):
+                        if path.startswith('db_backup') or path.startswith('database_backup'):
+                            logger.debug(f"Found candidate: {path}")
+                            candidates.append(path)
+
+                    # Also check root level for backwards compatibility
+                    if path == csv_name:
+                        logger.debug(f"Found at root level: {path}")
+                        return path
+
+                if candidates:
+                    selected = candidates[0]
+                    logger.info(f"Selected CSV path: {selected}")
+                    return selected
+
+                logger.warning(f"Could not find {csv_name} in ZIP. Searched for files ending with '/{csv_name}' in folders starting with 'db_backup' or 'database_backup'")
+                return None
+
+            # Find user.csv
+            user_csv_path = find_csv_file('user.csv')
+            if user_csv_path:
+                logger.info(f"Restoring User table from: {user_csv_path}")
+                user_csv_data = zip_ref.read(user_csv_path).decode('utf-8')
                 user_reader = csv.DictReader(io.StringIO(user_csv_data))
 
                 for row in user_reader:
@@ -208,9 +240,10 @@ def restore_database(
                 logger.info(f"User table restore complete: {summary['users_imported']} imported, {summary['users_skipped']} skipped")
 
             # Restore BlogPost table if exists
-            if 'blogpost.csv' in zip_contents:
-                logger.info("Restoring BlogPost table...")
-                post_csv_data = zip_ref.read('blogpost.csv').decode('utf-8')
+            blogpost_csv_path = find_csv_file('blogpost.csv')
+            if blogpost_csv_path:
+                logger.info(f"Restoring BlogPost table from: {blogpost_csv_path}")
+                post_csv_data = zip_ref.read(blogpost_csv_path).decode('utf-8')
                 post_reader = csv.DictReader(io.StringIO(post_csv_data))
 
                 for row in post_reader:

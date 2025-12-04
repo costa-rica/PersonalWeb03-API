@@ -25,18 +25,21 @@ curl -X POST http://localhost:8000/admin/database/backup \
 Success (200 OK):
 - Returns a ZIP file download
 - Filename format: `db_backup_personalweb03_YYYYMMDD_HHMMSS.zip`
-- Contains CSV files:
-  - `user.csv` - All user records
-  - `blogpost.csv` - All blog post records
+- Contains folder structure:
+  ```
+  db_backup/
+  ├── user.csv
+  └── blogpost.csv
+  ```
 
 **ZIP Contents:**
 
-Each CSV file contains all fields from the respective table:
+CSV files are located in the `db_backup/` folder. Each CSV file contains all fields from the respective table:
 
-**user.csv:**
+**db_backup/user.csv:**
 - id, email, password_hash, created_at, updated_at
 
-**blogpost.csv:**
+**db_backup/blogpost.csv:**
 - id, title, description, post_item_image, directory_name, created_at, updated_at
 
 **Error Responses:**
@@ -130,6 +133,8 @@ Error - Restore failed (500 Internal Server Error):
 **Behavior:**
 - **Appends data** to existing tables (does not clear existing data)
 - **ID preservation:** Uses IDs from CSV files
+- **Flexible folder structure:** Accepts CSV files in folders starting with `db_backup` (e.g., `db_backup/`, `db_backup_mod/`, `db_backup_20250101/`)
+- **macOS compatibility:** Automatically ignores `__MACOSX` metadata folders
 - **Conflict handling:**
   - Skips record if ID already exists in database
   - For User table: Skips if email already exists
@@ -144,6 +149,17 @@ Error - Restore failed (500 Internal Server Error):
 - Duplicate IDs, emails, or directory names will be skipped
 - Review `skipped_details` to understand what was not imported
 - Ensure blog post directories exist on filesystem if importing posts
+
+**Modifying Backups:**
+You can modify backup files before restoring:
+1. Download a backup ZIP
+2. Extract the `db_backup/` folder
+3. Edit the CSV files (`user.csv`, `blogpost.csv`) as needed
+4. You can rename the folder (e.g., `db_backup_mod`, `db_backup_custom`) - any name starting with `db_backup` works
+5. Create a new ZIP containing your modified folder
+6. Upload via the restore endpoint
+
+**Note:** When creating ZIPs on macOS, the system may add `__MACOSX` metadata folders - these are automatically ignored during restore.
 
 **Use Cases:**
 1. **Migration:** Moving data from one instance to another
