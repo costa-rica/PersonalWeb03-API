@@ -4,7 +4,7 @@ import csv
 import io
 import logging
 import zipfile
-from datetime import datetime
+from datetime import datetime, date
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import StreamingResponse
@@ -75,7 +75,8 @@ def backup_database(
             # Write header
             post_writer.writerow([
                 'id', 'title', 'description', 'post_item_image',
-                'directory_name', 'created_at', 'updated_at'
+                'directory_name', 'date_shown_on_blog', 'link_to_external_post',
+                'created_at', 'updated_at'
             ])
             # Write data
             for post in posts:
@@ -85,6 +86,8 @@ def backup_database(
                     post.description or '',
                     post.post_item_image or '',
                     post.directory_name,
+                    post.date_shown_on_blog.isoformat() if post.date_shown_on_blog else '',
+                    post.link_to_external_post or '',
                     post.created_at.isoformat() if post.created_at else '',
                     post.updated_at.isoformat() if post.updated_at else ''
                 ])
@@ -276,8 +279,12 @@ def restore_database(
                         title=row['title'],
                         description=row['description'] if row['description'] else None,
                         post_item_image=row['post_item_image'] if row['post_item_image'] else None,
-                        directory_name=directory_name
+                        directory_name=directory_name,
+                        link_to_external_post=row.get('link_to_external_post') if row.get('link_to_external_post') else None
                     )
+                    # Set date_shown_on_blog if available, otherwise use default
+                    if row.get('date_shown_on_blog'):
+                        new_post.date_shown_on_blog = date.fromisoformat(row['date_shown_on_blog'])
                     # Set timestamps if available
                     if row.get('created_at'):
                         new_post.created_at = datetime.fromisoformat(row['created_at'])

@@ -1,7 +1,7 @@
 """Database models for PersonalWeb03API."""
 
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime, date
+from sqlalchemy import Column, Integer, String, DateTime, Date
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -29,5 +29,7 @@ class BlogPost(Base):
     description = Column(String, nullable=True)
     post_item_image = Column(String, nullable=True)
     directory_name = Column(String, nullable=False)
+    date_shown_on_blog = Column(Date, default=date.today, nullable=False)
+    link_to_external_post = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

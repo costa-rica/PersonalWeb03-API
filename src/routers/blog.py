@@ -201,6 +201,14 @@ def update_post(
         post.post_item_image = update_data.post_item_image
         logger.debug(f"Updated post_item_image for post {post_id}")
 
+    if update_data.date_shown_on_blog is not None:
+        post.date_shown_on_blog = update_data.date_shown_on_blog
+        logger.debug(f"Updated date_shown_on_blog for post {post_id}")
+
+    if update_data.link_to_external_post is not None:
+        post.link_to_external_post = update_data.link_to_external_post
+        logger.debug(f"Updated link_to_external_post for post {post_id}")
+
     db.commit()
     db.refresh(post)
 
@@ -285,6 +293,8 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         description=post.description,
         post_item_image=post.post_item_image,
         directory_name=post.directory_name,
+        date_shown_on_blog=post.date_shown_on_blog,
+        link_to_external_post=post.link_to_external_post,
         created_at=post.created_at,
         updated_at=post.updated_at,
         markdown_content=markdown_content

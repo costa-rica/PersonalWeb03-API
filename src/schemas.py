@@ -1,6 +1,6 @@
 """Pydantic schemas for request and response validation."""
 
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel, field_validator
 
@@ -72,6 +72,8 @@ class BlogPostUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     post_item_image: Optional[str] = None
+    date_shown_on_blog: Optional[date] = None
+    link_to_external_post: Optional[str] = None
 
 
 class BlogPostList(BaseModel):
@@ -92,6 +94,8 @@ class BlogPostDetail(BaseModel):
     description: Optional[str]
     post_item_image: Optional[str]
     directory_name: str
+    date_shown_on_blog: date
+    link_to_external_post: Optional[str]
     created_at: datetime
     updated_at: datetime
     markdown_content: str
