@@ -184,7 +184,7 @@ Error - Not found (404 Not Found):
 
 ## GET /blog
 
-Retrieve a list of all blog posts (ID and title only).
+Retrieve a list of all blog posts with metadata.
 
 **Authentication:** Not required
 
@@ -201,14 +201,44 @@ Success (200 OK):
 [
   {
     "id": 1,
-    "title": "My First Blog Post"
+    "title": "My First Blog Post",
+    "description": "A brief description of the post",
+    "post_item_image": "thumbnail.jpg",
+    "url": null,
+    "date": "2024-01-15"
   },
   {
     "id": 2,
-    "title": "Another Great Post"
+    "title": "Another Great Post",
+    "description": "Another post description",
+    "post_item_image": null,
+    "url": null,
+    "date": "2024-01-20"
+  },
+  {
+    "id": 5,
+    "title": "My Medium Article",
+    "description": "Check out my post on Medium",
+    "post_item_image": "medium-icon.svg",
+    "url": "https://medium.com/@user/article",
+    "date": "2024-12-04"
   }
 ]
 ```
+
+**Response Fields:**
+- `id` (integer) - Blog post ID
+- `title` (string) - Blog post title
+- `description` (string, nullable) - Brief description
+- `post_item_image` (string, nullable) - Thumbnail image or icon filename
+- `url` (string, nullable) - URL to external post (null for local posts)
+- `date` (date) - Date to display on blog (format: YYYY-MM-DD)
+
+**Behavior:**
+- Returns all blog posts (both local and external link posts)
+- Local posts have `url` as `null`
+- External link posts have `url` populated with the external URL
+- All fields except `id`, `title`, and `date` are nullable
 
 ---
 
