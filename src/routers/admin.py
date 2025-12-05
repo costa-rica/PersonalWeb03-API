@@ -135,7 +135,7 @@ def backup_database(
                     post.title,
                     post.description or '',
                     post.post_item_image or '',
-                    post.directory_name,
+                    post.directory_name or '',
                     post.date_shown_on_blog.isoformat() if post.date_shown_on_blog else '',
                     post.link_to_external_post or '',
                     post.created_at.isoformat() if post.created_at else '',
@@ -301,7 +301,7 @@ def restore_database(
 
                 for row in post_reader:
                     post_id = int(row['id'])
-                    directory_name = row['directory_name']
+                    directory_name = row['directory_name'] if row['directory_name'] else None
 
                     # Check if ID exists
                     existing_by_id = db.query(BlogPost).filter(BlogPost.id == post_id).first()
@@ -311,17 +311,18 @@ def restore_database(
                         summary["skipped_details"].append(f"BlogPost ID {post_id}: ID exists")
                         continue
 
-                    # Check if directory_name exists
-                    existing_by_dir = db.query(BlogPost).filter(
-                        BlogPost.directory_name == directory_name
-                    ).first()
-                    if existing_by_dir:
-                        logger.warning(f"Skipping blog post {post_id}: directory {directory_name} exists")
-                        summary["posts_skipped"] += 1
-                        summary["skipped_details"].append(
-                            f"BlogPost ID {post_id}: directory {directory_name} exists"
-                        )
-                        continue
+                    # Check if directory_name exists (only if not null)
+                    if directory_name:
+                        existing_by_dir = db.query(BlogPost).filter(
+                            BlogPost.directory_name == directory_name
+                        ).first()
+                        if existing_by_dir:
+                            logger.warning(f"Skipping blog post {post_id}: directory {directory_name} exists")
+                            summary["posts_skipped"] += 1
+                            summary["skipped_details"].append(
+                                f"BlogPost ID {post_id}: directory {directory_name} exists"
+                            )
+                            continue
 
                     # Import blog post
                     new_post = BlogPost(

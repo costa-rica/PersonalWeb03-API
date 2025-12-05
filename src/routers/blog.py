@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from src.database import get_db
 from src.models import BlogPost, User
-from src.schemas import BlogPostList, BlogPostDetail, BlogPostUpdate
+from src.schemas import BlogPostList, BlogPostDetail, BlogPostUpdate, BlogPostCreateLink
 from src.auth import get_current_user
 
 # Load environment variables
@@ -155,6 +155,52 @@ def create_post(
     }
 
 
+@router.post("/blog/create-post-link", status_code=status.HTTP_201_CREATED)
+def create_post_link(
+    post_data: BlogPostCreateLink,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new blog post link (external post) without uploading files.
+
+    Args:
+        post_data: Blog post link data (title, url, icon, description, date_shown_on_blog)
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        dict: Created blog post information
+    """
+    logger.info(f"Creating new blog post link: {post_data.title}")
+
+    # Create new blog post record
+    new_post = BlogPost(
+        title=post_data.title,
+        description=post_data.description,
+        post_item_image=post_data.icon,
+        directory_name=None,
+        link_to_external_post=post_data.url
+    )
+
+    # Set date_shown_on_blog if provided
+    if post_data.date_shown_on_blog:
+        new_post.date_shown_on_blog = post_data.date_shown_on_blog
+
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+
+    logger.info(f"Blog post link created successfully: {new_post.id}")
+    return {
+        "id": new_post.id,
+        "title": new_post.title,
+        "link_to_external_post": new_post.link_to_external_post,
+        "post_item_image": new_post.post_item_image,
+        "message": "Blog post link created successfully"
+    }
+
+
 @router.patch("/update-post/{post_id}")
 def update_post(
     post_id: int,
@@ -238,6 +284,48 @@ def list_posts(db: Session = Depends(get_db)):
     logger.info(f"Found {len(posts)} blog posts")
     return posts
 
+
+@router.get("/blog/icons")
+def list_icons(current_user: User = Depends(get_current_user)):
+    """
+    List all icon files available in the icons directory.
+
+    Args:
+        current_user: Authenticated user
+
+    Returns:
+        dict: List of icon filenames
+    """
+    logger.info("Fetching icon list")
+
+    # Define image file extensions
+    image_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.bmp'}
+
+    # Get icons directory
+    icons_dir = Path(PATH_BLOG) / "icons"
+
+    # Check if directory exists
+    if not icons_dir.exists():
+        logger.warning(f"Icons directory does not exist: {icons_dir}")
+        return {"icons": []}
+
+    # Get all image files in the directory
+    try:
+        icon_files = [
+            f.name for f in icons_dir.iterdir()
+            if f.is_file() and f.suffix.lower() in image_extensions
+        ]
+        icon_files.sort()  # Sort alphabetically
+        logger.info(f"Found {len(icon_files)} icon files")
+        return {"icons": icon_files}
+    except Exception as e:
+        logger.error(f"Error reading icons directory: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error reading icons directory"
+        )
+
+
 # GET /blog/{post_id}
 @router.get("/blog/{post_id}", response_model=BlogPostDetail)
 def get_post(post_id: int, db: Session = Depends(get_db)):
@@ -265,26 +353,30 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
             detail="Blog post not found"
         )
 
-    # Read markdown content
-    posts_dir = Path(PATH_BLOG) / "posts"
-    post_md_path = posts_dir / post.directory_name / "post.md"
+    # Read markdown content (only if directory_name exists)
+    markdown_content = None
+    if post.directory_name:
+        posts_dir = Path(PATH_BLOG) / "posts"
+        post_md_path = posts_dir / post.directory_name / "post.md"
 
-    if not post_md_path.exists():
-        logger.error(f"post.md not found for post {post_id} at {post_md_path}")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post markdown file not found"
-        )
+        if not post_md_path.exists():
+            logger.error(f"post.md not found for post {post_id} at {post_md_path}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Post markdown file not found"
+            )
 
-    try:
-        markdown_content = post_md_path.read_text(encoding='utf-8')
-        logger.info(f"Read markdown content for post {post_id}")
-    except Exception as e:
-        logger.error(f"Error reading markdown file for post {post_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error reading post content"
-        )
+        try:
+            markdown_content = post_md_path.read_text(encoding='utf-8')
+            logger.info(f"Read markdown content for post {post_id}")
+        except Exception as e:
+            logger.error(f"Error reading markdown file for post {post_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error reading post content"
+            )
+    else:
+        logger.info(f"Post {post_id} is an external link, no markdown content")
 
     # Return post with markdown content
     return BlogPostDetail(

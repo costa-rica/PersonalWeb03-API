@@ -28,7 +28,7 @@ class BlogPost(Base):
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     post_item_image = Column(String, nullable=True)
-    directory_name = Column(String, nullable=False)
+    directory_name = Column(String, nullable=True)
     date_shown_on_blog = Column(Date, default=date.today, nullable=False)
     link_to_external_post = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

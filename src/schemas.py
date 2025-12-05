@@ -66,6 +66,16 @@ class BlogPostCreate(BaseModel):
     title: str
 
 
+class BlogPostCreateLink(BaseModel):
+    """Schema for creating a blog post link (external post)."""
+
+    title: str
+    url: str
+    icon: Optional[str] = None
+    description: Optional[str] = None
+    date_shown_on_blog: Optional[date] = None
+
+
 class BlogPostUpdate(BaseModel):
     """Schema for blog post update request."""
 
@@ -93,12 +103,12 @@ class BlogPostDetail(BaseModel):
     title: str
     description: Optional[str]
     post_item_image: Optional[str]
-    directory_name: str
+    directory_name: Optional[str]
     date_shown_on_blog: date
     link_to_external_post: Optional[str]
     created_at: datetime
     updated_at: datetime
-    markdown_content: str
+    markdown_content: Optional[str]
 
     class Config:
         from_attributes = True
