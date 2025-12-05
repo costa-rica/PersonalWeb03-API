@@ -87,19 +87,23 @@ class BlogPostUpdate(BaseModel):
 
 
 class BlogPostList(BaseModel):
-    """Schema for blog post list response."""
-
     id: int
     title: str
     description: Optional[str] = None
     post_item_image: Optional[str] = None
-    url: Optional[str] = Field(None, validation_alias='link_to_external_post', serialization_alias='url')
-    date: date = Field(validation_alias='date_shown_on_blog', serialization_alias='date')
+    url: Optional[str] = Field(
+        None,
+        validation_alias='link_to_external_post',
+        serialization_alias='url'
+    )
+    display_date: date = Field(
+        validation_alias='date_shown_on_blog',
+        serialization_alias='date'
+    )
 
     class Config:
         from_attributes = True
         populate_by_name = True
-
 
 class BlogPostDetail(BaseModel):
     """Schema for blog post detail response."""
