@@ -5,7 +5,7 @@ import io
 import logging
 import zipfile
 from datetime import datetime, date
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -18,6 +18,56 @@ from src.auth import get_current_user
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+
+def parse_flexible_date(date_string: str) -> Optional[date]:
+    """
+    Parse a date string in various common formats and return a date object.
+
+    Supports formats like:
+    - ISO: YYYY-MM-DD (2025-12-04)
+    - US: MM/DD/YY (12/4/25)
+    - US: MM/DD/YYYY (12/04/2025)
+    - US: M/D/YY (1/5/25)
+    - US: M/D/YYYY (1/5/2025)
+    - Hyphenated: MM-DD-YYYY (12-04-2025)
+
+    Args:
+        date_string: Date string to parse
+
+    Returns:
+        date object if parsing successful, None if empty string
+
+    Raises:
+        ValueError: If date string cannot be parsed in any known format
+    """
+    if not date_string or not date_string.strip():
+        return None
+
+    date_string = date_string.strip()
+
+    # List of date formats to try
+    formats = [
+        '%Y-%m-%d',      # ISO: 2025-12-04
+        '%m/%d/%y',      # US: 12/4/25
+        '%m/%d/%Y',      # US: 12/04/2025
+        '%m-%d-%Y',      # Hyphenated: 12-04-2025
+        '%m-%d-%y',      # Hyphenated: 12-04-25
+        '%Y/%m/%d',      # Alternative ISO: 2025/12/04
+        '%d/%m/%Y',      # European: 04/12/2025
+        '%d-%m-%Y',      # European: 04-12-2025
+    ]
+
+    for fmt in formats:
+        try:
+            parsed_date = datetime.strptime(date_string, fmt).date()
+            logger.debug(f"Successfully parsed '{date_string}' using format '{fmt}' -> {parsed_date}")
+            return parsed_date
+        except ValueError:
+            continue
+
+    # If no format worked, raise an error
+    raise ValueError(f"Could not parse date string '{date_string}' in any known format")
 
 
 @router.post("/database/backup")
@@ -284,7 +334,9 @@ def restore_database(
                     )
                     # Set date_shown_on_blog if available, otherwise use default
                     if row.get('date_shown_on_blog'):
-                        new_post.date_shown_on_blog = date.fromisoformat(row['date_shown_on_blog'])
+                        parsed_date = parse_flexible_date(row['date_shown_on_blog'])
+                        if parsed_date:
+                            new_post.date_shown_on_blog = parsed_date
                     # Set timestamps if available
                     if row.get('created_at'):
                         new_post.created_at = datetime.fromisoformat(row['created_at'])
